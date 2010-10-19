@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (c) 2010 the original author or authors
+
+Permission is hereby granted to use, modify, and distribute this file
+in accordance with the terms of the license agreement accompanying it.
+-->
+
+<!-- This is an auto generated file and is not intended for modification. -->
+
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" xmlns:flexui="flexunit.flexui.*" creationComplete="onCreationComplete()">
+	
+	<fx:Script>
+		<![CDATA[
+			public function currentRunTestSuite():Array
+			{
+				var testsToRun:Array = new Array();
+				testsToRun.push(OilSuite);
+				return testsToRun;
+			}
+			
+			private function onCreationComplete():void
+			{
+				testRunner.runWithFlexUnit4Runner(currentRunTestSuite(), "robotlegs-extensions-Oil");
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<flexui:FlexUnitTestRunnerUI id="testRunner">
+	</flexui:FlexUnitTestRunnerUI>
+</s:Application>

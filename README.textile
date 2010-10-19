@@ -1,0 +1,7 @@
+h1. Oil
+
+h2. Overview
+
+Oil is a collection of utilities and extensions for the Robotlegs framework.
+
+To be continued...
