@@ -5,13 +5,14 @@
  * in accordance with the terms of the license agreement accompanying it.
  */
 
-package org.robotlegs.oil.async
+package org.robotlegs.oil.utils.object
 {
 	
 	[Suite]
 	[RunWith("org.flexunit.runners.Suite")]
-	public class AsyncTestSuite
+	public class ObjectTestSuite
 	{
-		public var promiseTest:PromiseTest;
+		public var copyPropertiesTest:CopyPropertiesTest;
+		public var copyAllPropertiesTest:CopyAllPropertiesTest;
 	}
 }

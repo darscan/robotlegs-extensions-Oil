@@ -11,15 +11,27 @@ in accordance with the terms of the license agreement accompanying it.
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
 			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" xmlns:flexui="flexunit.flexui.*" creationComplete="onCreationComplete()">
-	
 	<fx:Script>
 		<![CDATA[
+			import org.robotlegs.oil.utils.object.CopyPropertiesTest;
+			import org.robotlegs.oil.utils.object.CopyAllPropertiesTest;
+			import org.robotlegs.oil.async.PromiseTest;
+			import org.robotlegs.oil.utils.object.ObjectTestSuite;
+			import org.robotlegs.oil.async.AsyncTestSuite;
+			import org.robotlegs.oil.OilSuite;
+			
 			public function currentRunTestSuite():Array
 			{
 				var testsToRun:Array = new Array();
-				testsToRun.push(OilSuite);
+				testsToRun.push(org.robotlegs.oil.OilSuite);
+				testsToRun.push(org.robotlegs.oil.async.AsyncTestSuite);
+				testsToRun.push(org.robotlegs.oil.utils.object.ObjectTestSuite);
+				testsToRun.push(org.robotlegs.oil.async.PromiseTest);
+				testsToRun.push(org.robotlegs.oil.utils.object.CopyAllPropertiesTest);
+				testsToRun.push(org.robotlegs.oil.utils.object.CopyPropertiesTest);
 				return testsToRun;
 			}
+			
 			
 			private function onCreationComplete():void
 			{
@@ -28,7 +40,6 @@ in accordance with the terms of the license agreement accompanying it.
 			
 		]]>
 	</fx:Script>
-	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>

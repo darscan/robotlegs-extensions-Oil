@@ -19,7 +19,7 @@ package org.robotlegs.oil.rest
 	import flash.utils.describeType;
 	
 	import org.robotlegs.oil.async.Promise;
-	import org.robotlegs.oil.utils.object.copyStrongProps;
+	import org.robotlegs.oil.utils.object.copyAllProperties;
 	
 	public class RestClientBase implements IRestClient
 	{
@@ -37,7 +37,7 @@ package org.robotlegs.oil.rest
 		public function get(url:String, params:Object = null):Promise
 		{
 			if (params)
-				url += createQueryString(copyStrongProps(params));
+				url += createQueryString(copyAllProperties(params));
 			var req:URLRequest = new URLRequest(fullUrl(url));
 			return request(req);
 		}
@@ -47,7 +47,7 @@ package org.robotlegs.oil.rest
 			var req:URLRequest = new URLRequest(fullUrl(url));
 			params ||= {forcePost: true}; // Workaround: FP performs GET when no params
 			req.method = URLRequestMethod.POST;
-			req.data = copyStrongProps(params, new URLVariables());
+			req.data = copyAllProperties(params, new URLVariables());
 			return request(req);
 		}
 		
