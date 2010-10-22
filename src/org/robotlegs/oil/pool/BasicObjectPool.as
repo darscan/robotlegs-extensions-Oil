@@ -7,15 +7,18 @@
 
 package org.robotlegs.oil.pool
 {
+	import org.robotlegs.oil.utils.object.copyProperties;
 	
 	public class BasicObjectPool implements IObjectPool
 	{
 		protected var instances:Array = new Array();
 		protected var type:Class;
+		protected var properties:Object;
 		
-		public function BasicObjectPool(type:Class)
+		public function BasicObjectPool(type:Class, properties:Object = null)
 		{
 			this.type = type;
+			this.properties = properties;
 		}
 		
 		public function put(object:Object):void
@@ -41,7 +44,9 @@ package org.robotlegs.oil.pool
 		protected function create():Object
 		{
 			_objectsCreated++;
-			return new type;
+			var instance:Object = new type;
+			copyProperties(properties, instance);
+			return instance;
 		}
 		
 		public function ensureSize(n:uint):void

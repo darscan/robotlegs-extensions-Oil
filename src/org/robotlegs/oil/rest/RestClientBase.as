@@ -17,7 +17,9 @@ package org.robotlegs.oil.rest
 	import flash.net.URLVariables;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
+	
 	import org.robotlegs.oil.async.Promise;
+	import org.robotlegs.oil.utils.object.copyStrongProps;
 	
 	public class RestClientBase implements IRestClient
 	{
@@ -35,7 +37,7 @@ package org.robotlegs.oil.rest
 		public function get(url:String, params:Object = null):Promise
 		{
 			if (params)
-				url += createQueryString(copyProperties(params));
+				url += createQueryString(copyStrongProps(params));
 			var req:URLRequest = new URLRequest(fullUrl(url));
 			return request(req);
 		}
@@ -45,7 +47,7 @@ package org.robotlegs.oil.rest
 			var req:URLRequest = new URLRequest(fullUrl(url));
 			params ||= {forcePost: true}; // Workaround: FP performs GET when no params
 			req.method = URLRequestMethod.POST;
-			req.data = copyProperties(params, new URLVariables());
+			req.data = copyStrongProps(params, new URLVariables());
 			return request(req);
 		}
 		
@@ -83,30 +85,6 @@ package org.robotlegs.oil.rest
 				output += '?' + parts.join('&');
 			}
 			return output;
-		}
-		
-		protected function copyProperties(from:Object, to:Object = null):Object
-		{
-			to ||= new Object();
-			var propertyName:String;
-			var propertyList:XMLList = describeType(from)..variable;
-			var propertyListLength:int = propertyList.length();
-			if (propertyListLength > 0)
-			{
-				// For sealed objects
-				for (var i:int; i < propertyListLength; i++)
-				{
-					propertyName = propertyList[i].@name;
-					to[propertyName] = from[propertyName];
-				}
-			}
-			else
-			{
-				// For dynamic objects
-				for (propertyName in from)
-					to[propertyName] = from[propertyName];
-			}
-			return to;
 		}
 		
 		protected function request(req:URLRequest):Promise

@@ -8,6 +8,7 @@
 package org.robotlegs.oil.flex
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 	
 	import org.robotlegs.core.IInjector;
 	import org.robotlegs.oil.pool.InjectingObjectPool;
@@ -22,15 +23,17 @@ package org.robotlegs.oil.flex
 			this.injector = injector;
 		}
 		
-		public function getFactory(type:Class):PooledRendererFactory
+		public function getFactory(type:Class, id:String = '', properties:Object = null):PooledRendererFactory
 		{
-			return pools[type] ||= createPool(type);
+			var key:String = getQualifiedClassName(type) + id;
+			return pools[key] ||= createPool(type, properties);
 		}
 		
-		protected function createPool(type:Class):PooledRendererFactory
+		protected function createPool(type:Class, properties:Object = null):PooledRendererFactory
 		{
-			var pool:InjectingObjectPool = new InjectingObjectPool(injector, type);
+			var pool:InjectingObjectPool = new InjectingObjectPool(injector, type, properties);
 			return new PooledRendererFactory(pool);
 		}
+	
 	}
 }

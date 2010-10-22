@@ -10,6 +10,7 @@ package org.robotlegs.oil.flex
 	import mx.core.IFactory;
 	
 	import org.robotlegs.core.IInjector;
+	import org.robotlegs.oil.utils.object.copyProperties;
 	
 	public class InjectingFactory implements IFactory
 	{
@@ -34,11 +35,7 @@ package org.robotlegs.oil.flex
 		public function newInstance():* // NO PMD
 		{
 			var instance:Object = injector.instantiate(type);
-			
-			if (properties != null)
-				for (var p:String in properties)
-					instance[p] = properties[p];
-			
+			copyProperties(properties, instance);
 			return instance;
 		}
 	}
