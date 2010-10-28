@@ -26,13 +26,13 @@ package org.robotlegs.oil.flex
 		/**
 		 * Builds an InjectingFactory pre-configured with an Injector
 		 *
-		 * @param generator The Class to create instances from
+		 * @param type The Class to create instances from
 		 * @param properties (Optional) Properties to apply to newly created instances
 		 * @return The pre-configured InjectingFactory
 		 */
-		public function build(generator:Class, properties:Object = null):InjectingFactory
+		public function build(type:Class, properties:Object = null):InjectingFactory
 		{
-			return new InjectingFactory(injector, generator, properties);
+			return new InjectingFactory(injector, type, properties);
 		}
 	
 	}
