@@ -48,7 +48,7 @@ An IRestClient returns Promises from get, post, put and delete calls.
     .addProgressHandler(onUserProgress);
 </pre>
 
-h3. Pool
+h2. Pool
 
 Basic object pooling.
 
