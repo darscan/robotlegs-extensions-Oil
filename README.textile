@@ -4,4 +4,111 @@ h2. Overview
 
 Oil is a collection of utilities and extensions for the Robotlegs framework.
 
-To be continued...
+h2. Async
+
+Some simple tools for dealing with asynchronous operations. May be expanded to include things like Tasks and Schedules.
+
+h3. Promise
+
+A Promise allows you to bind to the result of an asynchronous operation, and has a fluent interface for adding result, error and progress callbacks. For example:
+
+<code>
+  view.userPromise = service.getUser(userId)
+    .addResultHandler(handler)
+    .addErrorHandler(handler)
+    .addProgressHandler(handler);
+  
+  function handler(p:Promise):void
+  {
+    trace(p.status);
+    trace(p.result);
+    trace(p.error);
+    trace(p.progress);
+  }
+</code>
+
+<code>
+    <fx:Declarations>
+      <async:Promise id="userPromise"/>
+    </fx:Declarations>
+    <s:DataGroup dataProvider="{userPromise.result}" />
+</code>
+
+The status, result, error and progress properties are bindable. Handlers will run even if they are added "late" (after-the-fact). Handlers accept Promises.
+
+h2. Rest
+
+An IRestClient returns Promises from get, post, put and delete calls.
+
+<code>
+  client = new JSONClient("http://api.somewhere.com");
+  view.userPromise = client.get("/user/" + userId)
+    .addResultHandler(onUser)
+    .addErrorHandler(onUserError)
+    .addProgressHandler(onUserProgress);
+</code>
+
+h3. Pool
+
+Basic object pooling.
+
+<code>
+  pool = new BasicObjectPool(MyRenderer, {someProp:"hello"});
+  object = pool.get();
+  pool.put(object);
+  pool.ensureSize(10);
+</code>
+
+<code>
+  pool = new InjectingObjectPool(injector, MyRenderer, {someProp:"hello"});
+  object = pool.get();
+</code>
+
+h2. Flex
+
+Some Flex-specific stuff, like IFactory implementations that pull instances from DI containers or object pools.
+
+h3. InjectingFactory
+
+A Flex IFactory implementation that pulls objects from a Robotlegs IInjector.
+
+<code>
+  list.itemRenderer = new InjectingFactory(injector, MyRenderer, {someProp:"hello"});
+</code>
+
+h3. InjectingFactoryBuilder
+
+Builds an InjectingFactory pre-configured with an Injector.
+
+<code>
+  builder = new InjectingFactoryBuilder(injector);
+  list.itemRenderer = builder.build(MyRenderer, {someProp:"hello"});
+</code>
+
+h3. PooledRendererFactory, PooledRendererFactoryProvider
+
+A Flex IFactory implementation that pulls objects from an object pool.
+
+<code>
+  pool = new InjectingObjectPool(injector, MyRenderer, {someProp:"hello"});
+  list.itemRenderer = new PooledRendererFactory(pool);
+</code>
+
+Includes a mechanism for pooling data renderers across multiple consumers.
+
+<code>
+  <s:DataGroup id="list"
+    typicalItem="{prFactory.newInstance()}"
+    itemRenderer="{prFactory}"
+    itemRendererFunction="{prFactory.itemRendererFunction}"
+    rendererRemove="prFactory.rendererRemoveHandler(event)" />
+</code>
+
+Alternatively
+
+<code>
+  provider = new PooledRendererFactoryProvider(injector);
+  provider
+    .getFactory(MyRenderer)
+    .manage(list);
+</code>
