@@ -27,6 +27,18 @@ package org.robotlegs.oil.pool
 			copyProperties(properties, instance);
 			return instance;
 		}
+		
+		override public function get():Object
+		{
+			if (size > 0)
+			{
+				_objectsRecycled++;
+				var out:Object = instances.pop();
+				injector.injectInto(out);
+				return out;
+			}
+			return create();
+		}
 	
 	}
 }
