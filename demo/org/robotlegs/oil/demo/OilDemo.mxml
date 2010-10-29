@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	 Copyright (c) 2010 the original author or authors
+
+	 Permission is hereby granted to use, modify, and distribute this file
+	 in accordance with the terms of the license agreement accompanying it.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="100%"
+		 preinitialize="preinitializeHandler()">
+
+	<fx:Script>
+		<![CDATA[
+			import org.robotlegs.adapters.SwiftSuspendersInjector;
+			import org.robotlegs.core.IInjector;
+			import org.robotlegs.oil.flex.PooledRendererFactory;
+			import org.robotlegs.oil.flex.PooledRendererFactoryProvider;
+			import org.robotlegs.oil.pool.IObjectPool;
+			
+			import spark.components.List;
+			
+			[Bindable]
+			protected var injector:IInjector;
+			
+			[Bindable]
+			protected var prFactoryProvider:PooledRendererFactoryProvider;
+			
+			[Bindable]
+			protected var prFactory:PooledRendererFactory;
+			
+			[Bindable]
+			protected var pool:IObjectPool;
+			
+			protected function preinitializeHandler():void
+			{
+				injector = new SwiftSuspendersInjector();
+				injector.mapValue(IInjector, injector);
+				injector.mapValue(String, "hello", "greeting");
+				
+				prFactoryProvider = new PooledRendererFactoryProvider(injector);
+				prFactory = prFactoryProvider.getFactory(SomeRenderer);
+				pool = prFactory.pool;
+				
+				reloadData();
+			}
+			
+			protected function reloadData():void
+			{
+				var source:Array = [];
+				for (var i:int = 0; i < 100; i++)
+					source.push('Item ' + i + ' - ');
+				data.source = source;
+			}
+			
+			protected function addList():void
+			{
+				var list:List = new List();
+				list.width = 150;
+				list.height = 150;
+				list.dataProvider = data;
+				
+				prFactoryProvider
+					.getFactory(SomeRenderer)
+					.manage(list);
+				
+				list_box.addElement(list);
+			}
+			
+			protected function removeList():void
+			{
+				if (list_box.numElements > 0)
+				{
+					var list:List = list_box.getElementAt(0) as List;
+					list.dataProvider = null;
+					list_box.removeElement(list);
+				}
+			}
+		]]>
+	</fx:Script>
+
+	<fx:Declarations>
+		<s:ArrayList id="data"/>
+	</fx:Declarations>
+
+	<s:HGroup top="10">
+		<s:Button label="reload data"
+				  click="reloadData()"/>
+		<s:Button label="add list"
+				  click="addList()"/>
+		<s:Button label="remove list"
+				  click="removeList()"/>
+	</s:HGroup>
+
+
+	<s:HGroup id="list_box"
+			  top="40"
+			  width="100%">
+
+		<s:List width="150"
+				height="150"
+				dataProvider="{data}"
+				itemRenderer="{prFactory}"
+				itemRendererFunction="{prFactory.itemRendererFunction}"
+				rendererRemove="prFactory.rendererRemoveHandler(event)"/>
+
+	</s:HGroup>
+
+	<s:HGroup top="200">
+		<s:Label text="Objects created: {pool.objectsCreated}"/>
+		<s:Label text="Objects recycled: {pool.objectsRecycled}"/>
+		<s:Label text="Pool size: {pool.size}"/>
+	</s:HGroup>
+
+</s:Group>

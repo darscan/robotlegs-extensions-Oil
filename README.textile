@@ -10,7 +10,11 @@ Some simple tools for dealing with asynchronous operations. May be expanded to i
 
 h3. Promise
 
-A Promise allows you to bind to the result of an asynchronous operation, and has a fluent interface for adding result, error and progress callbacks. For example:
+A Promise allows you to bind to the result of an asynchronous operation, and has a fluent interface for adding result, error and progress callbacks.
+
+h4. Consumption
+
+Promise consumption might look like this:
 
 <pre>
   view.userPromise = service.getUser(userId)
@@ -36,6 +40,27 @@ A Promise allows you to bind to the result of an asynchronous operation, and has
 
 The status, result, error and progress properties are bindable. Handlers will run even if they are added "late" (after-the-fact). Handlers accept Promises.
 
+h4. Making Promises
+
+A provider might look something like this:
+
+<code>
+  public function getUser(userId:String):Promise
+  {
+    var promise:Promise = new Promise();
+    // .. wire up some async call that ends up at handleComplete() //
+    return promise;
+  }
+  
+  protected function handleComplete(event:Event):void
+  {
+    var loader:URLLoader = event.target as URLLoader;
+    var promise:Promise = promises[loader];
+    delete promises[loader];
+    promise.handleResult(loader.data);
+  }
+</code>
+
 h2. Rest
 
 An IRestClient returns Promises from get, post, put and delete calls.
@@ -47,6 +72,30 @@ An IRestClient returns Promises from get, post, put and delete calls.
     .addErrorHandler(onUserError)
     .addProgressHandler(onUserProgress);
 </pre>
+
+A service might look something like this:
+
+<code>
+public class UserService
+{
+  protected var service:IRestClient;
+  
+  public function UserService(service:IRestClient)
+  {
+    this.service = service;
+  }
+
+  public function getUsers():Promise
+  {
+    return service.get('/users/');
+  }
+
+  public function getUserDetails(userId:String):Promise
+  {
+    return service.get('/users/' + userId)
+  }
+}
+</code>
 
 h2. Pool
 

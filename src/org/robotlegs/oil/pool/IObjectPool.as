@@ -10,13 +10,17 @@ package org.robotlegs.oil.pool
 	
 	public interface IObjectPool
 	{
-		function get size():uint;
-		function get objectsCreated():uint;
-		function get objectsRecycled():uint;
-		
 		function ensureSize(n:uint):void;
-		
 		function get():Object;
-		function put(object:Object):void
+		function put(object:Object):void;
+		
+		[Bindable("sizeChange")]
+		function get size():uint;
+		
+		[Bindable("objectsCreatedChange")]
+		function get objectsCreated():uint;
+		
+		[Bindable("objectsRecycledChange")]
+		function get objectsRecycled():uint;
 	}
 }
