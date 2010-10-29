@@ -17,16 +17,21 @@ package org.robotlegs.oil.flex
 	
 	public class PooledRendererFactory implements IFactory
 	{
-		protected var pool:IObjectPool;
+		private var _pool:IObjectPool;
 		
 		public function PooledRendererFactory(pool:IObjectPool)
 		{
-			this.pool = pool;
+			_pool = pool;
+		}
+		
+		public function get pool():IObjectPool
+		{
+			return _pool;
 		}
 		
 		public function newInstance():*
 		{
-			return pool.get();
+			return _pool.get();
 		}
 		
 		public function itemRendererFunction(item:Object):IFactory
@@ -36,7 +41,7 @@ package org.robotlegs.oil.flex
 		
 		public function rendererRemoveHandler(event:RendererExistenceEvent):void
 		{
-			pool.put(event.renderer);
+			_pool.put(event.renderer);
 		}
 		
 		public function manage(component:Object):void

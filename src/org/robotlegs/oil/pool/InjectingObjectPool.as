@@ -7,6 +7,8 @@
 
 package org.robotlegs.oil.pool
 {
+	import flash.events.Event;
+	
 	import org.robotlegs.core.IInjector;
 	import org.robotlegs.oil.utils.object.copyProperties;
 	
@@ -20,10 +22,11 @@ package org.robotlegs.oil.pool
 			this.injector = injector;
 		}
 		
-		override protected function create():Object
+		override protected function createObject():Object
 		{
-			_objectsCreated++;
 			var instance:Object = injector.instantiate(type);
+			_objectsCreated++;
+			dispatchEvent(new Event("objectsCreatedChange"));			
 			copyProperties(properties, instance);
 			return instance;
 		}

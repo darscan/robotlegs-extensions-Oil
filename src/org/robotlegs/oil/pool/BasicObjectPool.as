@@ -7,9 +7,12 @@
 
 package org.robotlegs.oil.pool
 {
+	import flash.events.Event;
+	import flash.events.EventDispatcher;
+	
 	import org.robotlegs.oil.utils.object.copyProperties;
 	
-	public class BasicObjectPool implements IObjectPool
+	public class BasicObjectPool extends EventDispatcher implements IObjectPool
 	{
 		protected var instances:Array = new Array();
 		protected var type:Class;
@@ -24,29 +27,40 @@ package org.robotlegs.oil.pool
 		public function put(object:Object):void
 		{
 			if (object is type)
-			{
-				instances.push(object);
-			}
+				putObject(object);
 			else
 				throw new ArgumentError("Object put in pool must be of type " + type);
+		}
+		
+		protected function putObject(object:Object):void
+		{
+			instances.push(object);
+			dispatchEvent(new Event("sizeChange"));
 		}
 		
 		public function get():Object
 		{
 			if (size > 0)
-			{
-				_objectsRecycled++;
-				return instances.pop();
-			}
-			return create();
+				return getObject()
+			return createObject();
 		}
 		
-		protected function create():Object
+		protected function getObject():Object
 		{
+			var object:Object = instances.pop();
+			_objectsRecycled++;
+			dispatchEvent(new Event("sizeChange"));
+			dispatchEvent(new Event("objectsRecycledChange"));
+			return object;
+		}
+		
+		protected function createObject():Object
+		{
+			var object:Object = new type;
 			_objectsCreated++;
-			var instance:Object = new type;
-			copyProperties(properties, instance);
-			return instance;
+			copyProperties(properties, object);
+			dispatchEvent(new Event("objectsCreatedChange"));
+			return object;
 		}
 		
 		public function ensureSize(n:uint):void
@@ -60,13 +74,19 @@ package org.robotlegs.oil.pool
 		protected function grow(n:uint):void
 		{
 			while (size < n)
-				put(create());
+				put(createObject());
 		}
 		
 		protected function shrink(n:uint):void
 		{
 			while (size > n)
-				instances.pop();
+				popObject();
+		}
+		
+		protected function popObject():void
+		{
+			instances.pop();
+			dispatchEvent(new Event("sizeChange"));
 		}
 		
 		public function get size():uint
@@ -88,7 +108,7 @@ package org.robotlegs.oil.pool
 			return _objectsRecycled;
 		}
 		
-		public function toString():String
+		override public function toString():String
 		{
 			return 'ObjectPool for type ' + type + ' - pool size: ' + size + ' - objects created: ' + _objectsCreated + ' - objects recycled: ' + _objectsRecycled;
 		}
