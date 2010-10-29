@@ -31,16 +31,11 @@ package org.robotlegs.oil.pool
 			return instance;
 		}
 		
-		override public function get():Object
+		override protected function getObject():Object
 		{
-			if (size > 0)
-			{
-				_objectsRecycled++;
-				var out:Object = instances.pop();
-				injector.injectInto(out);
-				return out;
-			}
-			return create();
+			var object:Object = super.getObject();
+			injector.injectInto(object);
+			return object;
 		}
 	
 	}
