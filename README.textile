@@ -44,7 +44,7 @@ h4. Making Promises
 
 A provider might look something like this:
 
-<code>
+<pre>
   public function getUser(userId:String):Promise
   {
     var promise:Promise = new Promise();
@@ -59,7 +59,7 @@ A provider might look something like this:
     delete promises[loader];
     promise.handleResult(loader.data);
   }
-</code>
+</pre>
 
 h2. Rest
 
@@ -75,7 +75,7 @@ An IRestClient returns Promises from get, post, put and delete calls.
 
 A service might look something like this:
 
-<code>
+<pre>
 public class UserService
 {
   protected var service:IRestClient;
@@ -95,7 +95,7 @@ public class UserService
     return service.get('/users/' + userId)
   }
 }
-</code>
+</pre>
 
 h2. Pool
 
