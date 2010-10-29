@@ -92,7 +92,7 @@ public class UserService
 
   public function getUserDetails(userId:String):Promise
   {
-    return service.get('/users/' + userId)
+    return service.get('/users/' + userId);
   }
 }
 </pre>
