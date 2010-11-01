@@ -11,6 +11,7 @@ package org.robotlegs.oil.pool
 	[RunWith("org.flexunit.runners.Suite")]
 	public class PoolTestSuite
 	{
+		public var recyclingCommandMapTest:RecyclingCommandMapTests;
 		public var recyclingMediatorMapTest:RecyclingMediatorMapTest;
 	}
 }

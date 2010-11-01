@@ -1,34 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-Copyright (c) 2010 the original author or authors
+	 Copyright (c) 2010 the original author or authors
 
-Permission is hereby granted to use, modify, and distribute this file
-in accordance with the terms of the license agreement accompanying it.
+	 Permission is hereby granted to use, modify, and distribute this file
+	 in accordance with the terms of the license agreement accompanying it.
 -->
 
 <!-- This is an auto generated file and is not intended for modification. -->
 
-<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" xmlns:flexui="flexunit.flexui.*" creationComplete="onCreationComplete()">
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   minWidth="955"
+			   minHeight="600"
+			   xmlns:flexui="flexunit.flexui.*"
+			   creationComplete="onCreationComplete()">
 	<fx:Script>
 		<![CDATA[
-			import org.robotlegs.oil.utils.object.CopyPropertiesTest;
-			import org.robotlegs.oil.utils.object.CopyAllPropertiesTest;
-			import org.robotlegs.oil.async.PromiseTest;
-			import org.robotlegs.oil.utils.object.ObjectTestSuite;
-			import org.robotlegs.oil.async.AsyncTestSuite;
 			import org.robotlegs.oil.OilSuite;
 			
 			public function currentRunTestSuite():Array
 			{
 				var testsToRun:Array = new Array();
 				testsToRun.push(org.robotlegs.oil.OilSuite);
-				testsToRun.push(org.robotlegs.oil.async.AsyncTestSuite);
-				testsToRun.push(org.robotlegs.oil.utils.object.ObjectTestSuite);
-				testsToRun.push(org.robotlegs.oil.async.PromiseTest);
-				testsToRun.push(org.robotlegs.oil.utils.object.CopyAllPropertiesTest);
-				testsToRun.push(org.robotlegs.oil.utils.object.CopyPropertiesTest);
 				return testsToRun;
 			}
 			
@@ -37,7 +31,6 @@ in accordance with the terms of the license agreement accompanying it.
 			{
 				testRunner.runWithFlexUnit4Runner(currentRunTestSuite(), "robotlegs-extensions-Oil");
 			}
-			
 		]]>
 	</fx:Script>
 	<fx:Declarations>

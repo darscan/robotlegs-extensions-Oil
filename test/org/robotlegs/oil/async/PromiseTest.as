@@ -153,5 +153,49 @@ package org.robotlegs.oil.async
 			Assert.assertTrue("Progress handler should NOT have run", progressHandlerHitCount == 0);
 			Assert.assertTrue("Result handler should NOT have run", resultHandlerHitCount == 0);
 		}
+		
+		[Test]
+		public function testHandleFutureResultProcessor():void
+		{
+			promise.addResultProcessor(supportResultProcessor1);
+			promise.addResultProcessor(supportResultProcessor2);
+			promise.addResultHandler(supportResultProcessorHandler);
+			promise.handleResult(100);
+			Assert.assertTrue("Result handler should run", resultHandlerHitCount > 0);
+			Assert.assertEquals("Result should be processed", "processed", promise.result.title);
+			Assert.assertEquals("Result should be processed", "Test100", promise.result.string);
+		}
+		
+		[Test]
+		public function testHandleOldResultProcessor():void
+		{
+			promise.addResultProcessor(supportResultProcessor1);
+			promise.addResultProcessor(supportResultProcessor2);
+			promise.handleResult(100);
+			promise.addResultHandler(supportResultProcessorHandler);
+			Assert.assertTrue("Result handler should run", resultHandlerHitCount > 0);
+			Assert.assertEquals("Result should be processed", "processed", promise.result.title);
+			Assert.assertEquals("Result should be processed", "Test100", promise.result.string);
+		}
+		
+		protected function supportResultProcessor1(input:Number):String
+		{
+			var output:String = "Test" + input;
+			return output;
+		}
+		
+		protected function supportResultProcessor2(input:String):Object
+		{
+			var output:Object = {
+					title: "processed",
+					string: input
+				};
+			return output;
+		}
+		
+		protected function supportResultProcessorHandler(p:Promise):void
+		{
+			resultHandlerHitCount++;
+		}
 	}
 }

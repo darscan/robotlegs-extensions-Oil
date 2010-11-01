@@ -12,14 +12,10 @@ package org.robotlegs.oil.async
 	
 	public class Promise extends EventDispatcher
 	{
-		public static var PENDING:String = "pending"; // NO PMD
-		public static var COMPLETE:String = "complete"; // NO PMD
-		public static var FAILED:String = "failed"; // NO PMD
-		public static var CANCELLED:String = "cancelled"; // NO PMD
-		
-		protected var resultHandlers:Array;
-		protected var errorHandlers:Array;
-		protected var progressHandlers:Array;
+		public static const PENDING:String = "pending"; // NO PMD
+		public static const COMPLETE:String = "complete"; // NO PMD
+		public static const FAILED:String = "failed"; // NO PMD
+		public static const CANCELLED:String = "cancelled"; // NO PMD
 		
 		public function Promise()
 		{
@@ -29,11 +25,14 @@ package org.robotlegs.oil.async
 		protected function resetHandlers():void
 		{
 			resultHandlers = [];
+			resultProcessors = [];
 			errorHandlers = [];
 			progressHandlers = [];
 		}
 		
 		// Add Handlers
+		
+		protected var resultHandlers:Array;
 		
 		public function addResultHandler(handler:Function):Promise
 		{
@@ -44,6 +43,17 @@ package org.robotlegs.oil.async
 			return this;
 		}
 		
+		protected var resultProcessors:Array;
+		
+		public function addResultProcessor(processor:Function):Promise
+		{
+			if (status == PENDING)
+				addNewHandler(resultProcessors, processor);
+			return this;
+		}
+		
+		protected var errorHandlers:Array;
+		
 		public function addErrorHandler(handler:Function):Promise
 		{
 			if (status == FAILED)
@@ -52,6 +62,8 @@ package org.robotlegs.oil.async
 				addNewHandler(errorHandlers, handler);
 			return this;
 		}
+		
+		protected var progressHandlers:Array;
 		
 		public function addProgressHandler(handler:Function):Promise
 		{
@@ -66,6 +78,7 @@ package org.robotlegs.oil.async
 		
 		public function handleResult(value:*):void // NO PMD
 		{
+			value = processResult(value);
 			setResult(value);
 			setStatus(COMPLETE);
 			handle(resultHandlers);
@@ -172,12 +185,23 @@ package org.robotlegs.oil.async
 		
 		protected function handle(handlers:Array):void
 		{
-			var len:int = handlers.length;
+			const len:int = handlers.length;
 			for (var i:int = 0; i < len; i++)
 			{
 				var handler:Function = handlers[i];
 				handler(this);
 			}
+		}
+		
+		protected function processResult(result:*):*
+		{
+			const len:int = resultProcessors.length;
+			for (var i:int = 0; i < len; i++)
+			{
+				var processor:Function = resultProcessors[i];
+				result = processor(result);
+			}
+			return result;
 		}
 	
 	}

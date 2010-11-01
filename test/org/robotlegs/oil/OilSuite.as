@@ -7,6 +7,7 @@
 package org.robotlegs.oil
 {
 	import org.robotlegs.oil.async.AsyncTestSuite;
+	import org.robotlegs.oil.pool.PoolTestSuite;
 	import org.robotlegs.oil.utils.object.ObjectTestSuite;
 	
 	[Suite]
@@ -15,5 +16,6 @@ package org.robotlegs.oil
 	{
 		public var asyncTestSuite:AsyncTestSuite;
 		public var objectTestSuite:ObjectTestSuite;
+		// public var poolTestSuite:PoolTestSuite;
 	}
 }
