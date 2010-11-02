@@ -18,6 +18,8 @@ package org.robotlegs.oil.rest
 			super(rootURL);
 		}
 		
+		// TODO: provide JSON parser as a processor to RestClient instead of extension
+		// i.e. composition over inheritance - the hardest lesson to learn
 		override protected function generateObject(data:*):Object // NO PMD
 		{
 			// Hack:

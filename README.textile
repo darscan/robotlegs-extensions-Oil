@@ -12,6 +12,8 @@ h3. Promise
 
 A Promise allows you to bind to the result of an asynchronous operation, and has a fluent interface for adding result, error and progress callbacks.
 
+The status, result, error and progress properties are bindable. Handlers will run even if they are added "late" (after-the-fact). A handler must accept a single argument: a Promise.
+
 h4. Consumption
 
 Promise consumption might look like this:
@@ -38,8 +40,6 @@ Promise consumption might look like this:
     <s:DataGroup dataProvider="{userPromise.result}" />
 </pre>
 
-The status, result, error and progress properties are bindable. Handlers will run even if they are added "late" (after-the-fact). Handlers accept Promises.
-
 h4. Making Promises
 
 A provider might look something like this:
@@ -58,6 +58,36 @@ A provider might look something like this:
     var promise:Promise = promises[loader];
     delete promises[loader];
     promise.handleResult(loader.data);
+  }
+</pre>
+
+Note: the promises dictionary above is just an example. How you manage Promises from your provider is completely up to you. For a more thorough example see: org.robotlegs.oil.rest.RestClientBase 
+
+h4. Processing Promises
+
+You might want your provider to process results before calling the result handlers. A processor is a function that accepts a single argument and returns an output.
+
+<pre>
+  public function getUser(userId:String):Promise
+  {
+    var promise:Promise = new Promise()
+      .addResultProcessor(jsonProcessor)
+      .addResultProcessor(timestampProcessor);
+    // .. snip .. //
+    return promise;
+  }
+  
+  function jsonProcessor(input:String):Object
+  {
+    var output:Object = new JSONDecoder().decode(input);
+    return output;
+  }
+  
+  function timestampProcessor(input:Object):Object
+  {
+    var output:Object = input;
+    output.timestamp = new Date().time;
+    return output;
   }
 </pre>
 

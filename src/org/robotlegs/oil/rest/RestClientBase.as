@@ -144,6 +144,7 @@ package org.robotlegs.oil.rest
 			return url.indexOf("://") > -1 ? url : rootURL + url;
 		}
 		
+		// TODO: destroy - use Promise processors instead.. perhaps
 		protected function generateObject(data:*):Object
 		{
 			return Object(data);
