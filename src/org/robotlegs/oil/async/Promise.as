@@ -39,7 +39,7 @@ package org.robotlegs.oil.async
 			if (status == COMPLETE)
 				handler(this);
 			else if (status == PENDING)
-				addNewHandler(resultHandlers, handler);
+				resultHandlers.push(handler);
 			return this;
 		}
 		
@@ -48,7 +48,7 @@ package org.robotlegs.oil.async
 		public function addResultProcessor(processor:Function):Promise
 		{
 			if (status == PENDING)
-				addNewHandler(resultProcessors, processor);
+				resultProcessors.push(processor);
 			return this;
 		}
 		
@@ -59,7 +59,7 @@ package org.robotlegs.oil.async
 			if (status == FAILED)
 				handler(this);
 			else if (status == PENDING)
-				addNewHandler(errorHandlers, handler);
+				errorHandlers.push(handler);
 			return this;
 		}
 		
@@ -70,7 +70,7 @@ package org.robotlegs.oil.async
 			if (status == FAILED || status == COMPLETE || status == CANCELLED)
 				handler(this);
 			else if (status == PENDING)
-				addNewHandler(progressHandlers, handler);
+				progressHandlers.push(handler);
 			return this;
 		}
 		
@@ -176,12 +176,6 @@ package org.robotlegs.oil.async
 		}
 		
 		// Helpers
-		
-		protected function addNewHandler(handlers:Array, handler:Function):void
-		{
-			if (handlers.indexOf(handler) == -1)
-				handlers.push(handler);
-		}
 		
 		protected function handle(handlers:Array):void
 		{
