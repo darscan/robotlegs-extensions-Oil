@@ -26,25 +26,35 @@ package org.robotlegs.oil.rest
 		protected var loaders:Dictionary;
 		protected var promises:Dictionary;
 		protected var rootURL:String;
+		protected var resultProcessors:Array;
 		
 		public function RestClientBase(rootURL:String = "")
 		{
 			this.loaders = new Dictionary();
 			this.promises = new Dictionary();
 			this.rootURL = rootURL;
+			this.resultProcessors = [];
 		}
 		
 		public function get(url:String, params:Object = null):Promise
 		{
 			if (params)
 				url += createQueryString(copyAllProperties(params));
-			var req:URLRequest = new URLRequest(fullUrl(url));
+			const req:URLRequest = new URLRequest(fullUrl(url));
 			return request(req);
+		}
+		
+		protected function fullUrl(url:String):String
+		{
+			if (url == null || url.length == 0)
+				return null;
+			
+			return url.indexOf("://") > -1 ? url : rootURL + url;
 		}
 		
 		public function post(url:String, params:Object = null):Promise
 		{
-			var req:URLRequest = new URLRequest(fullUrl(url));
+			const req:URLRequest = new URLRequest(fullUrl(url));
 			params ||= {forcePost: true}; // Workaround: FP performs GET when no params
 			req.method = URLRequestMethod.POST;
 			req.data = copyAllProperties(params, new URLVariables());
@@ -63,6 +73,12 @@ package org.robotlegs.oil.rest
 			params ||= {};
 			params._method = 'delete';
 			return post(url, params);
+		}
+		
+		public function addResultProcessor(processor:Function):IRestClient
+		{
+			resultProcessors.push(processor);
+			return this;
 		}
 		
 		protected function createQueryString(params:Object):String
@@ -89,8 +105,8 @@ package org.robotlegs.oil.rest
 		
 		protected function request(req:URLRequest):Promise
 		{
-			var promise:Promise = new Promise();
-			var loader:URLLoader = new URLLoader();
+			const promise:Promise = new Promise();
+			const loader:URLLoader = new URLLoader();
 			promises[loader] = promise;
 			loaders[promise] = loader;
 			loader.addEventListener(Event.COMPLETE, handleComplete);
@@ -103,51 +119,49 @@ package org.robotlegs.oil.rest
 		
 		protected function releasePromise(promise:Promise):void
 		{
-			var loader:URLLoader = loaders[promise];
+			const loader:URLLoader = loaders[promise];
 			delete promises[loader];
 			delete loaders[promise];
 		}
 		
 		protected function handleSecurity(event:SecurityErrorEvent):void
 		{
-			var promise:Promise = promises[event.target];
+			const promise:Promise = promises[event.target];
 			releasePromise(promise);
 			promise.handleError({error: "Security Error", message: event.text, event: event});
 		}
 		
 		protected function handleProgress(event:ProgressEvent):void
 		{
-			var promise:Promise = promises[event.target];
+			const promise:Promise = promises[event.target];
 			promise.handleProgress({bytesTotal: event.bytesTotal, bytesLoaded: event.bytesLoaded, event: event});
 		}
 		
 		protected function handleIoError(event:IOErrorEvent):void
 		{
-			var promise:Promise = promises[event.target];
+			const promise:Promise = promises[event.target];
 			releasePromise(promise);
 			promise.handleError({error: "IO Error", message: event.text, event: event});
 		}
 		
 		protected function handleComplete(event:Event):void
 		{
-			var promise:Promise = promises[event.target];
+			const promise:Promise = promises[event.target];
+			const result:* = processResult(event.target.data);
 			releasePromise(promise);
-			// TODO: add filter
-			promise.handleResult(generateObject(event.target.data));
+			promise.handleResult(result);
 		}
 		
-		protected function fullUrl(url:String):String
+		protected function processResult(result:*):*
 		{
-			if (url == null || url.length == 0)
-				return null;
-			
-			return url.indexOf("://") > -1 ? url : rootURL + url;
+			const len:int = resultProcessors.length;
+			for (var i:int = 0; i < len; i++)
+			{
+				var processor:Function = resultProcessors[i];
+				result = processor(result);
+			}
+			return result;
 		}
 		
-		// TODO: destroy - use Promise processors instead.. perhaps
-		protected function generateObject(data:*):Object
-		{
-			return Object(data);
-		}
 	}
 }

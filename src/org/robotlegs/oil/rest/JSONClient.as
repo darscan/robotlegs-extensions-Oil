@@ -16,11 +16,10 @@ package org.robotlegs.oil.rest
 		public function JSONClient(rootURL:String = "")
 		{
 			super(rootURL);
+			addResultProcessor(parseJSON);
 		}
 		
-		// TODO: provide JSON parser as a processor to RestClient instead of extension
-		// i.e. composition over inheritance - the hardest lesson to learn
-		override protected function generateObject(data:*):Object // NO PMD
+		protected function parseJSON(data:*):Object // NO PMD
 		{
 			// Hack:
 			if (data == "[]")

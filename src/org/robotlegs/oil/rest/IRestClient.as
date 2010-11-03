@@ -15,5 +15,6 @@ package org.robotlegs.oil.rest
 		function post(url:String, params:Object = null):Promise;
 		function put(url:String, params:Object = null):Promise;
 		function del(url:String, params:Object = null):Promise;
+		function addResultProcessor(processor:Function):IRestClient;
 	}
 }
