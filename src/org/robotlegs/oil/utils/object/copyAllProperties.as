@@ -12,13 +12,13 @@ package org.robotlegs.oil.utils.object
 	 */
 	public function copyAllProperties(from:Object, into:Object = null):Object
 	{
-		
 		// Primitive
 		if (from is String ||
 			from is Number ||
 			from is uint ||
 			from is int ||
-			from is Boolean)
+			from is Boolean ||
+			from == null)
 		{
 			into = from;
 			return into;
@@ -34,6 +34,10 @@ package org.robotlegs.oil.utils.object
 				intoArray[i] = copyAllProperties(fromArray[i]);
 			return intoArray;
 		}
+		
+		// ObjectProxy
+		if (from)
+			from = from.valueOf();
 		
 		// Object
 		into ||= {};

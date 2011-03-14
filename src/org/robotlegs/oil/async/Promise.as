@@ -1,59 +1,85 @@
-/*
- * Copyright (c) 2010 the original author or authors
- *
- * Permission is hereby granted to use, modify, and distribute this file
- * in accordance with the terms of the license agreement accompanying it.
- */
+//------------------------------------------------------------------------------
+//  Copyright (c) 2010 the original author or authors 
+//  All Rights Reserved. 
+// 
+//  NOTICE: You are permitted you to use, modify, and distribute this file 
+//  in accordance with the terms of the license agreement accompanying it. 
+//------------------------------------------------------------------------------
 
 package org.robotlegs.oil.async
 {
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	
+
 	public class Promise extends EventDispatcher
 	{
-		public static const PENDING:String = "pending"; // NO PMD
-		public static const COMPLETE:String = "complete"; // NO PMD
-		public static const FAILED:String = "failed"; // NO PMD
+
+		/*============================================================================*/
+		/* Public Static Properties                                                   */
+		/*============================================================================*/
+
 		public static const CANCELLED:String = "cancelled"; // NO PMD
-		
-		public function Promise()
+
+		public static const COMPLETE:String = "complete"; // NO PMD
+
+		public static const FAILED:String = "failed"; // NO PMD
+
+		public static const PENDING:String = "pending"; // NO PMD
+
+
+		/*============================================================================*/
+		/* Public Properties                                                          */
+		/*============================================================================*/
+
+		protected var _error:*;
+
+		[Bindable("errorChange")]
+		public function get error():*
 		{
-			resetHandlers();
+			return _error;
 		}
-		
-		protected function resetHandlers():void
+
+		protected var _progress:*;
+
+		[Bindable("progressChange")]
+		public function get progress():*
 		{
-			resultHandlers = [];
-			resultProcessors = [];
-			errorHandlers = [];
-			progressHandlers = [];
+			return _progress;
 		}
-		
-		// Add Handlers
-		
-		protected var resultHandlers:Array;
-		
-		public function addResultHandler(handler:Function):Promise
+
+		protected var _result:*;
+
+		[Bindable("resultChange")]
+		public function get result():*
 		{
-			if (status == COMPLETE)
-				handler(this);
-			else if (status == PENDING)
-				resultHandlers.push(handler);
-			return this;
+			return _result;
 		}
-		
-		protected var resultProcessors:Array;
-		
-		public function addResultProcessor(processor:Function):Promise
+
+		protected var _status:String = PENDING;
+
+		[Bindable("statusChange")]
+		public function get status():String
 		{
-			if (status == PENDING)
-				resultProcessors.push(processor);
-			return this;
+			return _status;
 		}
-		
-		protected var errorHandlers:Array;
-		
+
+		/*============================================================================*/
+		/* Protected Properties                                                       */
+		/*============================================================================*/
+
+		protected var errorHandlers:Array = [];
+
+		protected var progressHandlers:Array = [];
+
+		protected var resultHandlers:Array = [];
+
+		protected var resultProcessors:Array = [];
+
+
+		/*============================================================================*/
+		/* Public Functions                                                           */
+		/*============================================================================*/
+
 		public function addErrorHandler(handler:Function):Promise
 		{
 			if (status == FAILED)
@@ -62,9 +88,7 @@ package org.robotlegs.oil.async
 				errorHandlers.push(handler);
 			return this;
 		}
-		
-		protected var progressHandlers:Array;
-		
+
 		public function addProgressHandler(handler:Function):Promise
 		{
 			if (status == FAILED || status == COMPLETE || status == CANCELLED)
@@ -73,110 +97,62 @@ package org.robotlegs.oil.async
 				progressHandlers.push(handler);
 			return this;
 		}
-		
-		// Handle
-		
-		public function handleResult(value:*):void // NO PMD
+
+		public function addResultHandler(handler:Function):Promise
+		{
+			if (status == COMPLETE)
+				handler(this);
+			else if (status == PENDING)
+				resultHandlers.push(handler);
+			return this;
+		}
+
+		public function addResultProcessor(processor:Function):Promise
+		{
+			if (status == PENDING)
+				resultProcessors.push(processor);
+			return this;
+		}
+
+		public function cancel():Promise
+		{
+			setStatus(CANCELLED);
+			resetHandlers();
+			return this;
+		}
+
+		public function handleError(value:*):Promise // NO PMD
+		{
+			setError(value);
+			setStatus(FAILED);
+			handle(errorHandlers);
+			resetHandlers();
+			return this;
+		}
+
+		public function handleProgress(value:*):Promise // NO PMD
+		{
+			setProgress(value);
+			handle(progressHandlers);
+			return this;
+		}
+
+		public function handleResult(value:*):Promise // NO PMD
 		{
 			value = processResult(value);
 			setResult(value);
 			setStatus(COMPLETE);
 			handle(resultHandlers);
 			resetHandlers();
+			return this;
 		}
-		
-		public function handleError(value:*):void // NO PMD
-		{
-			setError(value);
-			setStatus(FAILED);
-			handle(errorHandlers);
-			resetHandlers();
-		}
-		
-		public function handleProgress(value:*):void // NO PMD
-		{
-			setProgress(value);
-			handle(progressHandlers);
-		}
-		
-		public function cancel():void
-		{
-			setStatus(CANCELLED);
-			resetHandlers();
-		}
-		
-		// Bindables
-		
-		protected var _status:String = PENDING;
-		
-		[Bindable("statusChange")]
-		public function get status():String
-		{
-			return _status;
-		}
-		
-		protected function setStatus(value:String):void
-		{
-			if (_status != value)
-			{
-				_status = value;
-				dispatchEvent(new Event("statusChange"));
-			}
-		}
-		
-		protected var _result:*;
-		
-		[Bindable("resultChange")]
-		public function get result():*
-		{
-			return _result;
-		}
-		
-		protected function setResult(value:*):void
-		{
-			if (_result != value)
-			{
-				_result = value;
-				dispatchEvent(new Event("resultChange"));
-			}
-		}
-		
-		protected var _error:*;
-		
-		[Bindable("errorChange")]
-		public function get error():*
-		{
-			return _error;
-		}
-		
-		protected function setError(value:*):void
-		{
-			if (_error != value)
-			{
-				_error = value;
-				dispatchEvent(new Event("errorChange"));
-			}
-		}
-		
-		protected var _progress:*;
-		
-		[Bindable("progressChange")]
-		public function get progress():*
-		{
-			return _progress;
-		}
-		
-		protected function setProgress(value:*):void
-		{
-			if (_progress != value)
-			{
-				_progress = value;
-				dispatchEvent(new Event("progressChange"));
-			}
-		}
-		
+
+		/*============================================================================*/
+		/* Protected Functions                                                        */
+		/*============================================================================*/
+
 		// Helpers
-		
+
 		protected function handle(handlers:Array):void
 		{
 			const len:int = handlers.length;
@@ -186,7 +162,7 @@ package org.robotlegs.oil.async
 				handler(this);
 			}
 		}
-		
+
 		protected function processResult(result:*):*
 		{
 			const len:int = resultProcessors.length;
@@ -197,6 +173,49 @@ package org.robotlegs.oil.async
 			}
 			return result;
 		}
-	
+
+		protected function resetHandlers():void
+		{
+			resultHandlers = [];
+			resultProcessors = [];
+			errorHandlers = [];
+			progressHandlers = [];
+		}
+
+		protected function setError(value:*):void
+		{
+			if (_error != value)
+			{
+				_error = value;
+				dispatchEvent(new Event("errorChange"));
+			}
+		}
+
+		protected function setProgress(value:*):void
+		{
+			if (_progress != value)
+			{
+				_progress = value;
+				dispatchEvent(new Event("progressChange"));
+			}
+		}
+
+		protected function setResult(value:*):void
+		{
+			if (_result != value)
+			{
+				_result = value;
+				dispatchEvent(new Event("resultChange"));
+			}
+		}
+
+		protected function setStatus(value:String):void
+		{
+			if (_status != value)
+			{
+				_status = value;
+				dispatchEvent(new Event("statusChange"));
+			}
+		}
 	}
 }

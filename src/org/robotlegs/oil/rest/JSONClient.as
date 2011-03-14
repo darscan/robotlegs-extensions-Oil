@@ -22,8 +22,10 @@ package org.robotlegs.oil.rest
 		protected function parseJSON(data:*):Object // NO PMD
 		{
 			// Hack:
-			if (data == "[]")
+			if (data == '[]')
 				return new ArrayCollection();
+			if (data == '')
+				return null;
 			return new JSONDecoder().decode(String(data));
 		}
 	}
