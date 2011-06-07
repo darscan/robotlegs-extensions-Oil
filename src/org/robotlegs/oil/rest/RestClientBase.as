@@ -1,9 +1,9 @@
-/*
- * Copyright (c) 2010 the original author or authors
- *
- * Permission is hereby granted to use, modify, and distribute this file
- * in accordance with the terms of the license agreement accompanying it.
- */
+//------------------------------------------------------------------------------
+//  Copyright (c) 2011 the original author or authors. All Rights Reserved. 
+// 
+//  NOTICE: You are permitted you to use, modify, and distribute this file 
+//  in accordance with the terms of the license agreement accompanying it. 
+//------------------------------------------------------------------------------
 
 package org.robotlegs.oil.rest
 {
@@ -20,67 +20,90 @@ package org.robotlegs.oil.rest
 	
 	import org.robotlegs.oil.async.Promise;
 	import org.robotlegs.oil.utils.object.copyAllProperties;
-	
+
 	public class RestClientBase implements IRestClient
 	{
-		protected var loaders:Dictionary;
-		protected var promises:Dictionary;
+
+		/*============================================================================*/
+		/* Protected Properties                                                       */
+		/*============================================================================*/
+
+		protected var loaders:Dictionary = new Dictionary();
+
+		protected var paramsProcessors:Array = [];
+
+		protected var promises:Dictionary = new Dictionary();
+
+		protected var resultProcessors:Array = [];
+
 		protected var rootURL:String;
-		protected var resultProcessors:Array;
-		
+
+		/*============================================================================*/
+		/* Constructor                                                                */
+		/*============================================================================*/
+
 		public function RestClientBase(rootURL:String = "")
 		{
-			this.loaders = new Dictionary();
-			this.promises = new Dictionary();
 			this.rootURL = rootURL;
-			this.resultProcessors = [];
 		}
-		
-		public function get(url:String, params:Object = null):Promise
+
+
+		/*============================================================================*/
+		/* Public Functions                                                           */
+		/*============================================================================*/
+
+		public function addParamsProcessor(processor:Function):IRestClient
 		{
-			if (params)
-				url += createQueryString(copyAllProperties(params));
-			const req:URLRequest = new URLRequest(fullUrl(url));
-			return request(req);
+			paramsProcessors.push(processor);
+			return this;
 		}
-		
-		protected function fullUrl(url:String):String
+
+		public function addResultProcessor(processor:Function):IRestClient
 		{
-			if (url == null || url.length == 0)
-				return null;
-			
-			return url.indexOf("://") > -1 ? url : rootURL + url;
+			resultProcessors.push(processor);
+			return this;
 		}
-		
-		public function post(url:String, params:Object = null):Promise
-		{
-			const req:URLRequest = new URLRequest(fullUrl(url));
-			params ||= {forcePost: true}; // Workaround: FP performs GET when no params
-			req.method = URLRequestMethod.POST;
-			req.data = copyAllProperties(params, new URLVariables());
-			return request(req);
-		}
-		
-		public function put(url:String, params:Object = null):Promise
-		{
-			params ||= {};
-			params._method = 'put';
-			return post(url, params);
-		}
-		
+
 		public function del(url:String, params:Object = null):Promise
 		{
 			params ||= {};
 			params._method = 'delete';
 			return post(url, params);
 		}
-		
-		public function addResultProcessor(processor:Function):IRestClient
+
+		public function get(url:String, params:Object = null):Promise
 		{
-			resultProcessors.push(processor);
-			return this;
+			params = process(params, paramsProcessors);
+			if (params)
+				url += createQueryString(copyAllProperties(params));
+			const req:URLRequest = new URLRequest(fullUrl(url));
+			return request(req);
 		}
-		
+
+		public function post(url:String, params:Object = null):Promise
+		{
+			const req:URLRequest = new URLRequest(fullUrl(url));
+			req.method = URLRequestMethod.POST;
+			params = process(params, paramsProcessors);
+			// params ||= { forcePost: true }; // Workaround: FP performs GET when no params
+			// FlashBuilder 4.5 has a problem with the mushroom operator, hence:
+			if (!params)
+				params = { forcePost: true };
+			req.data = copyAllProperties(params, new URLVariables());
+			return request(req);
+		}
+
+		public function put(url:String, params:Object = null):Promise
+		{
+			params ||= {};
+			params._method = 'put';
+			return post(url, params);
+		}
+
+		/*============================================================================*/
+		/* Protected Functions                                                        */
+		/*============================================================================*/
+
 		protected function createQueryString(params:Object):String
 		{
 			var output:String = '';
@@ -102,7 +125,64 @@ package org.robotlegs.oil.rest
 			}
 			return output;
 		}
-		
+
+		protected function fullUrl(url:String):String
+		{
+			if (url == null || url.length == 0)
+				return null;
+
+			return url.indexOf("://") > -1 ? url : rootURL + url;
+		}
+
+		protected function handleComplete(event:Event):void
+		{
+			const promise:Promise = promises[event.target];
+			const result:* = process(event.target.data, resultProcessors);
+			releasePromise(promise);
+			if (result is Error)
+				promise.handleError(result);
+			else
+				promise.handleResult(result);
+		}
+
+		protected function handleIoError(event:IOErrorEvent):void
+		{
+			const promise:Promise = promises[event.target];
+			releasePromise(promise);
+			promise.handleError({ error: "IO Error", message: event.text, event: event });
+		}
+
+		protected function handleProgress(event:ProgressEvent):void
+		{
+			const promise:Promise = promises[event.target];
+			promise.handleProgress({ bytesTotal: event.bytesTotal, bytesLoaded: event.bytesLoaded, event: event });
+		}
+
+		protected function handleSecurity(event:SecurityErrorEvent):void
+		{
+			const promise:Promise = promises[event.target];
+			releasePromise(promise);
+			promise.handleError({ error: "Security Error", message: event.text, event: event });
+		}
+
+		protected function process(value:*, processors:Array):*
+		{
+			const len:int = processors.length;
+			for (var i:int = 0; i < len; i++)
+			{
+				var processor:Function = processors[i];
+				value = processor(value);
+			}
+			return value;
+		}
+
+		protected function releasePromise(promise:Promise):void
+		{
+			const loader:URLLoader = loaders[promise];
+			delete promises[loader];
+			delete loaders[promise];
+		}
+
 		protected function request(req:URLRequest):Promise
 		{
 			const promise:Promise = new Promise();
@@ -116,52 +196,6 @@ package org.robotlegs.oil.rest
 			loader.load(req);
 			return promise;
 		}
-		
-		protected function releasePromise(promise:Promise):void
-		{
-			const loader:URLLoader = loaders[promise];
-			delete promises[loader];
-			delete loaders[promise];
-		}
-		
-		protected function handleSecurity(event:SecurityErrorEvent):void
-		{
-			const promise:Promise = promises[event.target];
-			releasePromise(promise);
-			promise.handleError({error: "Security Error", message: event.text, event: event});
-		}
-		
-		protected function handleProgress(event:ProgressEvent):void
-		{
-			const promise:Promise = promises[event.target];
-			promise.handleProgress({bytesTotal: event.bytesTotal, bytesLoaded: event.bytesLoaded, event: event});
-		}
-		
-		protected function handleIoError(event:IOErrorEvent):void
-		{
-			const promise:Promise = promises[event.target];
-			releasePromise(promise);
-			promise.handleError({error: "IO Error", message: event.text, event: event});
-		}
-		
-		protected function handleComplete(event:Event):void
-		{
-			const promise:Promise = promises[event.target];
-			const result:* = processResult(event.target.data);
-			releasePromise(promise);
-			promise.handleResult(result);
-		}
-		
-		protected function processResult(result:*):*
-		{
-			const len:int = resultProcessors.length;
-			for (var i:int = 0; i < len; i++)
-			{
-				var processor:Function = resultProcessors[i];
-				result = processor(result);
-			}
-			return result;
-		}
-		
+		;
 	}
 }
