@@ -60,6 +60,11 @@ package org.robotlegs.oil.pool
 		 * @private
 		 */
 		protected var reflector:IReflector;
+
+		/**
+		 * @private
+		 */
+		protected var active:Boolean;
 		
 		//---------------------------------------------------------------------
 		//  Constructor
@@ -220,6 +225,15 @@ package org.robotlegs.oil.pool
 		/**
 		 * @inheritDoc
 		 */
+		public function hasMapping(viewClassOrName:*):Boolean
+		{
+			var viewClassName:String = reflector.getFQCN(viewClassOrName);
+			return (mappingConfigByViewClassName[viewClassName] != null);
+		}
+
+		/**
+		 * @inheritDoc
+		 */
 		public function hasMediatorForView(viewComponent:Object):Boolean
 		{
 			return mediatorByView[viewComponent] != null;
@@ -249,7 +263,7 @@ package org.robotlegs.oil.pool
 		 */		
 		protected override function addListeners():void
 		{
-			if (contextView && enabled && _active)
+			if (contextView && enabled && active)
 			{
 				contextView.addEventListener(Event.ADDED_TO_STAGE, onViewAdded, useCapture, 0, true);
 				contextView.addEventListener(Event.REMOVED_FROM_STAGE, onViewRemoved, useCapture, 0, true);
@@ -261,7 +275,7 @@ package org.robotlegs.oil.pool
 		 */		
 		protected override function removeListeners():void
 		{
-			if (contextView && enabled && _active)
+			if (contextView && enabled && active)
 			{
 				contextView.removeEventListener(Event.ADDED_TO_STAGE, onViewAdded, useCapture);
 				contextView.removeEventListener(Event.REMOVED_FROM_STAGE, onViewRemoved, useCapture);
@@ -283,6 +297,14 @@ package org.robotlegs.oil.pool
 			{
 				createMediator(e.target);
 			}
+		}
+
+		/**
+		 * @private
+		 */		
+		protected function activate():void
+		{
+			active = true;
 		}
 		
 		/**
