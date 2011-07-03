@@ -142,18 +142,19 @@ package org.robotlegs.oil.async
 
 		public function handleResult(value:*):Promise // NO PMD
 		{
-			processResult(value, function(err:Object, data:Object = null):void
-			{
-				if (err)
+			new ActionChain(resultProcessors)
+				.run(value, function(err:Object, data:Object = null):void
 				{
-					handleError(err);
-					return;
-				}
-				setResult(data);
-				setStatus(COMPLETE);
-				handle(resultHandlers);
-				resetHandlers();
-			});
+					if (err)
+					{
+						handleError(err);
+						return;
+					}
+					setResult(data);
+					setStatus(COMPLETE);
+					handle(resultHandlers);
+					resetHandlers();
+				});
 			return this;
 		}
 
@@ -171,35 +172,6 @@ package org.robotlegs.oil.async
 				var handler:Function = handlers[i];
 				handler(this);
 			}
-		}
-
-		protected function processResult(result:*, callback:Function):void
-		{
-			const len:int = resultProcessors.length;
-			if (len == 0)
-			{
-				callback(null, result);
-				return;
-			}
-			var processorIndex:int = 0;
-			var processor:Function = resultProcessors[processorIndex];
-			function processorCallback(err:Object, data:Object = null):void
-			{
-				if (err)
-				{
-					callback(err, data);
-					return;
-				}
-				processorIndex++;
-				if (processorIndex >= len)
-				{
-					callback(err, data);
-					return;
-				}
-				processor = resultProcessors[processorIndex];
-				processor(data, processorCallback);
-			}
-			processor(result, processorCallback);
 		}
 
 		protected function resetHandlers():void
