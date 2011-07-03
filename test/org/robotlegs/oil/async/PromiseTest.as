@@ -1,3 +1,10 @@
+//------------------------------------------------------------------------------
+//  Copyright (c) 2011 the original author or authors. All Rights Reserved. 
+// 
+//  NOTICE: You are permitted you to use, modify, and distribute this file 
+//  in accordance with the terms of the license agreement accompanying it. 
+//------------------------------------------------------------------------------
+
 /*
  * Copyright (c) 2010 the original author or authors
  *
@@ -8,137 +15,58 @@
 package org.robotlegs.oil.async
 {
 	import flexunit.framework.Assert;
-	
+
 	public class PromiseTest
 	{
-		private var promise:Promise;
-		
+
+		/*============================================================================*/
+		/* Private Properties                                                         */
+		/*============================================================================*/
+
 		private var errorHandlerHitCount:int;
+
 		private var progressHandlerHitCount:int;
+
+		private var promise:Promise;
+
 		private var resultHandlerHitCount:int;
-		
+
+
+		/*============================================================================*/
+		/* Public Static Functions                                                    */
+		/*============================================================================*/
+
+		[BeforeClass]
+		public static function setUpBeforeClass():void
+		{
+		}
+
+		[AfterClass]
+		public static function tearDownAfterClass():void
+		{
+		}
+
+
+		/*============================================================================*/
+		/* Public Functions                                                           */
+		/*============================================================================*/
+
 		[Before]
 		public function setUp():void
 		{
 			promise = new Promise();
-			
+
 			errorHandlerHitCount = 0;
 			progressHandlerHitCount = 0;
 			resultHandlerHitCount = 0;
 		}
-		
+
 		[After]
 		public function tearDown():void
 		{
 			promise = null;
 		}
-		
-		[BeforeClass]
-		public static function setUpBeforeClass():void
-		{
-		}
-		
-		[AfterClass]
-		public static function tearDownAfterClass():void
-		{
-		}
-		
-		[Test]
-		public function testHandleFutureError():void
-		{
-			promise.addErrorHandler(supportErrorHandler);
-			promise.handleError(null);
-			Assert.assertTrue("Error handler should run", errorHandlerHitCount > 0);
-		}
-		
-		[Test]
-		public function testHandleOldError():void
-		{
-			promise.handleError(null);
-			promise.addErrorHandler(supportErrorHandler);
-			Assert.assertTrue("Error handler should run", errorHandlerHitCount > 0);
-		}
-		
-		private function supportErrorHandler(p:Promise):void
-		{
-			errorHandlerHitCount++;
-		}
-		
-		[Test]
-		public function testHandleFutureProgress():void
-		{
-			promise.addProgressHandler(supportProgressHandler);
-			promise.handleProgress(null);
-			Assert.assertTrue("Progress handler should run", progressHandlerHitCount > 0);
-		}
-		
-		[Test]
-		public function testHandleOldProgress():void
-		{
-			promise.handleResult(null);
-			promise.addProgressHandler(supportProgressHandler);
-			Assert.assertTrue("Progress handler should run", progressHandlerHitCount > 0);
-		}
-		
-		private function supportProgressHandler(p:Promise):void
-		{
-			progressHandlerHitCount++;
-		}
-		
-		[Test]
-		public function testHandleFutureResult():void
-		{
-			promise.addResultHandler(supportResultHandler);
-			promise.handleResult(null);
-			Assert.assertTrue("Result handler should run", resultHandlerHitCount > 0);
-		}
-		
-		[Test]
-		public function testHandleOldResult():void
-		{
-			promise.handleResult(null);
-			promise.addResultHandler(supportResultHandler);
-			Assert.assertTrue("Result handler should run", resultHandlerHitCount > 0);
-		}
-		
-		private function supportResultHandler(p:Promise):void
-		{
-			resultHandlerHitCount++;
-		}
-		
-		[Test]
-		public function testGet_error():void
-		{
-			promise.handleError(0.5);
-			Assert.assertEquals("Error should be set", 0.5, promise.error);
-		}
-		
-		[Test]
-		public function testGet_progress():void
-		{
-			promise.handleProgress(0.5);
-			Assert.assertEquals("Progress should be set", 0.5, promise.progress);
-		}
-		
-		[Test]
-		public function testPromise():void
-		{
-			Assert.assertTrue("promise is Promise", promise is Promise);
-		}
-		
-		[Test]
-		public function testGet_result():void
-		{
-			promise.handleResult(0.5);
-			Assert.assertEquals("Result should be set", 0.5, promise.result);
-		}
-		
-		[Test]
-		public function testGet_status():void
-		{
-			Assert.assertEquals("Status should start pending", Promise.PENDING, promise.status);
-		}
-		
+
 		[Test]
 		public function testCancel():void
 		{
@@ -153,7 +81,58 @@ package org.robotlegs.oil.async
 			Assert.assertTrue("Progress handler should NOT have run", progressHandlerHitCount == 0);
 			Assert.assertTrue("Result handler should NOT have run", resultHandlerHitCount == 0);
 		}
-		
+
+		[Test]
+		public function testGet_error():void
+		{
+			promise.handleError(0.5);
+			Assert.assertEquals("Error should be set", 0.5, promise.error);
+		}
+
+		[Test]
+		public function testGet_progress():void
+		{
+			promise.handleProgress(0.5);
+			Assert.assertEquals("Progress should be set", 0.5, promise.progress);
+		}
+
+		[Test]
+		public function testGet_result():void
+		{
+			promise.handleResult(0.5);
+			Assert.assertEquals("Result should be set", 0.5, promise.result);
+		}
+
+		[Test]
+		public function testGet_status():void
+		{
+			Assert.assertEquals("Status should start pending", Promise.PENDING, promise.status);
+		}
+
+		[Test]
+		public function testHandleFutureError():void
+		{
+			promise.addErrorHandler(supportErrorHandler);
+			promise.handleError(null);
+			Assert.assertTrue("Error handler should run", errorHandlerHitCount > 0);
+		}
+
+		[Test]
+		public function testHandleFutureProgress():void
+		{
+			promise.addProgressHandler(supportProgressHandler);
+			promise.handleProgress(null);
+			Assert.assertTrue("Progress handler should run", progressHandlerHitCount > 0);
+		}
+
+		[Test]
+		public function testHandleFutureResult():void
+		{
+			promise.addResultHandler(supportResultHandler);
+			promise.handleResult(null);
+			Assert.assertTrue("Result handler should run", resultHandlerHitCount > 0);
+		}
+
 		[Test]
 		public function testHandleFutureResultProcessor():void
 		{
@@ -165,7 +144,31 @@ package org.robotlegs.oil.async
 			Assert.assertEquals("Result should be processed", "processed", promise.result.title);
 			Assert.assertEquals("Result should be processed", "Test100", promise.result.string);
 		}
-		
+
+		[Test]
+		public function testHandleOldError():void
+		{
+			promise.handleError(null);
+			promise.addErrorHandler(supportErrorHandler);
+			Assert.assertTrue("Error handler should run", errorHandlerHitCount > 0);
+		}
+
+		[Test]
+		public function testHandleOldProgress():void
+		{
+			promise.handleResult(null);
+			promise.addProgressHandler(supportProgressHandler);
+			Assert.assertTrue("Progress handler should run", progressHandlerHitCount > 0);
+		}
+
+		[Test]
+		public function testHandleOldResult():void
+		{
+			promise.handleResult(null);
+			promise.addResultHandler(supportResultHandler);
+			Assert.assertTrue("Result handler should run", resultHandlerHitCount > 0);
+		}
+
 		[Test]
 		public function testHandleOldResultProcessor():void
 		{
@@ -177,22 +180,47 @@ package org.robotlegs.oil.async
 			Assert.assertEquals("Result should be processed", "processed", promise.result.title);
 			Assert.assertEquals("Result should be processed", "Test100", promise.result.string);
 		}
-		
-		protected function supportResultProcessor1(input:Number):String
+
+		[Test]
+		public function testPromise():void
+		{
+			Assert.assertTrue("promise is Promise", promise is Promise);
+		}
+
+		/*============================================================================*/
+		/* Protected Functions                                                        */
+		/*============================================================================*/
+
+		protected function supportErrorHandler(p:Promise):void
+		{
+			errorHandlerHitCount++;
+		}
+
+		protected function supportProgressHandler(p:Promise):void
+		{
+			progressHandlerHitCount++;
+		}
+
+		protected function supportResultHandler(p:Promise):void
+		{
+			resultHandlerHitCount++;
+		}
+
+		protected function supportResultProcessor1(input:Number, callback:Function):void
 		{
 			var output:String = "Test" + input;
-			return output;
+			callback(null, output);
 		}
-		
-		protected function supportResultProcessor2(input:String):Object
+
+		protected function supportResultProcessor2(input:String, callback:Function):void
 		{
 			var output:Object = {
 					title: "processed",
 					string: input
 				};
-			return output;
+			callback(null, output);
 		}
-		
+
 		protected function supportResultProcessorHandler(p:Promise):void
 		{
 			resultHandlerHitCount++;

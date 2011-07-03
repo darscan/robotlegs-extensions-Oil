@@ -1,6 +1,5 @@
 //------------------------------------------------------------------------------
-//  Copyright (c) 2010 the original author or authors 
-//  All Rights Reserved. 
+//  Copyright (c) 2011 the original author or authors. All Rights Reserved. 
 // 
 //  NOTICE: You are permitted you to use, modify, and distribute this file 
 //  in accordance with the terms of the license agreement accompanying it. 
@@ -11,6 +10,10 @@ package org.robotlegs.oil.async
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 
+	[Event(name="errorChange", type="flash.events.Event")]
+	[Event(name="progressChange", type="flash.events.Event")]
+	[Event(name="resultChange", type="flash.events.Event")]
+	[Event(name="statusChange", type="flash.events.Event")]
 	public class Promise extends EventDispatcher
 	{
 
@@ -139,11 +142,18 @@ package org.robotlegs.oil.async
 
 		public function handleResult(value:*):Promise // NO PMD
 		{
-			value = processResult(value);
-			setResult(value);
-			setStatus(COMPLETE);
-			handle(resultHandlers);
-			resetHandlers();
+			processResult(value, function(err:Object, data:Object = null):void
+			{
+				if (err)
+				{
+					handleError(err);
+					return;
+				}
+				setResult(data);
+				setStatus(COMPLETE);
+				handle(resultHandlers);
+				resetHandlers();
+			});
 			return this;
 		}
 
@@ -163,15 +173,33 @@ package org.robotlegs.oil.async
 			}
 		}
 
-		protected function processResult(result:*):*
+		protected function processResult(result:*, callback:Function):void
 		{
 			const len:int = resultProcessors.length;
-			for (var i:int = 0; i < len; i++)
+			if (len == 0)
 			{
-				var processor:Function = resultProcessors[i];
-				result = processor(result);
+				callback(null, result);
+				return;
 			}
-			return result;
+			var processorIndex:int = 0;
+			var processor:Function = resultProcessors[processorIndex];
+			function processorCallback(err:Object, data:Object = null):void
+			{
+				if (err)
+				{
+					callback(err, data);
+					return;
+				}
+				processorIndex++;
+				if (processorIndex >= len)
+				{
+					callback(err, data);
+					return;
+				}
+				processor = resultProcessors[processorIndex];
+				processor(data, processorCallback);
+			}
+			processor(result, processorCallback);
 		}
 
 		protected function resetHandlers():void

@@ -105,14 +105,20 @@ package org.robotlegs.oil.rest
 			return source;
 		}
 
-		protected function resultProcessor(data:*):Object // NO PMD
+		protected function resultProcessor(data:*, callback:Function):void // NO PMD
 		{
 			// Hack:
 			if (data == '[]')
-				return new ArrayCollection();
+			{
+				callback(null, new ArrayCollection());
+				return;
+			}
 			if (data == '')
-				return null;
-			return _decoder.decode(String(data));
+			{
+				callback(null, null);
+				return;
+			}
+			callback(null, _decoder.decode(String(data)));
 		}
 	}
 }

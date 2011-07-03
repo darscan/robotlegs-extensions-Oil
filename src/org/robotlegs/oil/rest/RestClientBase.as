@@ -16,8 +16,6 @@ package org.robotlegs.oil.rest
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.utils.Dictionary;
-	import flash.utils.describeType;
-	
 	import org.robotlegs.oil.async.Promise;
 	import org.robotlegs.oil.utils.object.copyAllProperties;
 
@@ -137,12 +135,9 @@ package org.robotlegs.oil.rest
 		protected function handleComplete(event:Event):void
 		{
 			const promise:Promise = promises[event.target];
-			const result:* = process(event.target.data, resultProcessors);
+			const result:* = event.target.data;
+			promise.handleResult(result);
 			releasePromise(promise);
-			if (result is Error)
-				promise.handleError(result);
-			else
-				promise.handleResult(result);
 		}
 
 		protected function handleIoError(event:IOErrorEvent):void
@@ -186,6 +181,10 @@ package org.robotlegs.oil.rest
 		protected function request(req:URLRequest):Promise
 		{
 			const promise:Promise = new Promise();
+			resultProcessors.forEach(function(processor:Function, ... rest):void
+			{
+				promise.addResultProcessor(processor);
+			});
 			const loader:URLLoader = new URLLoader();
 			promises[loader] = promise;
 			loaders[promise] = loader;
@@ -196,6 +195,5 @@ package org.robotlegs.oil.rest
 			loader.load(req);
 			return promise;
 		}
-		;
 	}
 }
