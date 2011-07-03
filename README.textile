@@ -63,33 +63,53 @@ A provider might look something like this:
 
 Note: the promises dictionary above is just an example. How you manage Promises from your provider is completely up to you. For a more thorough example see: org.robotlegs.oil.rest.RestClientBase 
 
-h4. Processing Promises
+h4. Processing Promises (updated)
 
-You might want your provider to process results before calling the result handlers. A processor is a function that accepts a single argument and returns an output.
+You might want your provider to process results before calling the result handlers. A processor is an asynchronous function that accepts a data payload and a callback. You must call the callback with an error (or null) as the first argument and the transformed data as the second. 
 
 <pre>
   public function getUser(userId:String):Promise
   {
     var promise:Promise = new Promise()
       .addResultProcessor(jsonProcessor)
-      .addResultProcessor(timestampProcessor);
+      .addResultProcessor(timestampProcessor)
+      .addResultProcessor(throttleProcessor);
     // .. snip .. //
     return promise;
   }
   
-  function jsonProcessor(input:String):Object
+  function jsonProcessor(input:String, callback:Function):void
   {
-    var output:Object = new JSONDecoder().decode(input);
-    return output;
+    var data:Object = new JSONDecoder().decode(input);
+    if (data && data.error)
+    {
+      callback(data.error);
+    }
+    else
+    {
+      callback(null, output);
+    }
   }
   
-  function timestampProcessor(input:Object):Object
+  function timestampProcessor(input:Object, callback:Function):void
   {
     var output:Object = input;
     output.timestamp = new Date().time;
-    return output;
+    callback(null, output);
+  }
+  
+  function throttleProcessor(data:Object, callback:Function):void
+  {
+    setTimeout(function():void
+    {
+      callback(null, data);
+    }, 500);
   }
 </pre>
+
+Note: You *must* call the callback at some point.
+
+Note: Passing any non-falsey value as the first argument to the callback will halt processing, put the promise into the fail state and invoke any error handlers.
 
 h2. Rest
 
