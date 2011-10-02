@@ -28,7 +28,7 @@ package org.robotlegs.oil.rest
 
 		protected var loaders:Dictionary = new Dictionary();
 
-		protected var paramsProcessors:Array = [];
+		protected var paramTransforms:Array = [];
 
 		protected var promises:Dictionary = new Dictionary();
 
@@ -50,9 +50,9 @@ package org.robotlegs.oil.rest
 		/* Public Functions                                                           */
 		/*============================================================================*/
 
-		public function addParamsProcessor(processor:Function):IRestClient
+		public function addParamsTransform(transform:Function):IRestClient
 		{
-			paramsProcessors.push(processor);
+			paramTransforms.push(transform);
 			return this;
 		}
 
@@ -64,14 +64,16 @@ package org.robotlegs.oil.rest
 
 		public function del(url:String, params:Object = null):Promise
 		{
+			// note: do not transform params as this will be done in post
 			params ||= {};
+			// method override, see: Rack::MethodOverride
 			params._method = 'delete';
 			return post(url, params);
 		}
 
 		public function get(url:String, params:Object = null):Promise
 		{
-			params = process(params, paramsProcessors);
+			params = transform(params, paramTransforms);
 			if (params)
 				url += createQueryString(copyAllProperties(params));
 			const req:URLRequest = new URLRequest(fullUrl(url));
@@ -82,18 +84,20 @@ package org.robotlegs.oil.rest
 		{
 			const req:URLRequest = new URLRequest(fullUrl(url));
 			req.method = URLRequestMethod.POST;
-			params = process(params, paramsProcessors);
+			params = transform(params, paramTransforms);
 			// params ||= { forcePost: true }; // Workaround: FP performs GET when no params
 			// FlashBuilder 4.5 has a problem with the mushroom operator, hence:
 			if (!params)
-				params = { forcePost: true };
+				params = {forcePost: true};
 			req.data = copyAllProperties(params, new URLVariables());
 			return request(req);
 		}
 
 		public function put(url:String, params:Object = null):Promise
 		{
+			// note: do not transform params as this will be done in post
 			params ||= {};
+			// method override, see: Rack::MethodOverride
 			params._method = 'put';
 			return post(url, params);
 		}
@@ -144,31 +148,20 @@ package org.robotlegs.oil.rest
 		{
 			const promise:Promise = promises[event.target];
 			releasePromise(promise);
-			promise.handleError({ error: "IO Error", message: event.text, event: event });
+			promise.handleError({error: "IO Error", message: event.text, event: event});
 		}
 
 		protected function handleProgress(event:ProgressEvent):void
 		{
 			const promise:Promise = promises[event.target];
-			promise.handleProgress({ bytesTotal: event.bytesTotal, bytesLoaded: event.bytesLoaded, event: event });
+			promise.handleProgress({bytesTotal: event.bytesTotal, bytesLoaded: event.bytesLoaded, event: event});
 		}
 
 		protected function handleSecurity(event:SecurityErrorEvent):void
 		{
 			const promise:Promise = promises[event.target];
 			releasePromise(promise);
-			promise.handleError({ error: "Security Error", message: event.text, event: event });
-		}
-
-		protected function process(value:*, processors:Array):*
-		{
-			const len:int = processors.length;
-			for (var i:int = 0; i < len; i++)
-			{
-				var processor:Function = processors[i];
-				value = processor(value);
-			}
-			return value;
+			promise.handleError({error: "Security Error", message: event.text, event: event});
 		}
 
 		protected function releasePromise(promise:Promise):void
@@ -194,6 +187,17 @@ package org.robotlegs.oil.rest
 			loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurity);
 			loader.load(req);
 			return promise;
+		}
+
+		protected function transform(value:*, transforms:Array):*
+		{
+			const len:int = transforms.length;
+			for (var i:int = 0; i < len; i++)
+			{
+				var processor:Function = transforms[i];
+				value = processor(value);
+			}
+			return value;
 		}
 	}
 }

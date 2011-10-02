@@ -30,6 +30,8 @@ package org.robotlegs.oil.async
 
 		private var finalCallback:Function;
 
+		private var hasFinished:Boolean;
+
 		private var hasRun:Boolean;
 
 		private var results:Array = [];
@@ -54,14 +56,12 @@ package org.robotlegs.oil.async
 				throw new IllegalOperationError("An ActionGroup can only be run once");
 
 			hasRun = true;
-
+			hasFinished = false;
 			finalCallback = callback;
-
 			pin[this] = true;
-
 			actions.forEach(function(action:Function, ... rest):void
 			{
-				action(data, actionCallback);
+				action(data, handleAction);
 			});
 		}
 
@@ -69,7 +69,19 @@ package org.robotlegs.oil.async
 		/* Private Functions                                                          */
 		/*============================================================================*/
 
-		private function actionCallback(err:Object, data:Object = null):void
+		private function finish():void
+		{
+			if (hasFinished)
+				return;
+
+			hasFinished = true;
+			actions.length = 0;
+			delete pin[this];
+
+			finalCallback(errors, results);
+		}
+
+		private function handleAction(err:Object, data:Object = null):void
 		{
 			results.push(data);
 
@@ -77,19 +89,13 @@ package org.robotlegs.oil.async
 			{
 				errors ||= [];
 				errors.push(err);
+				finish();
 			}
 
 			if (results.length == actions.length)
 			{
 				finish();
 			}
-		}
-
-		private function finish():void
-		{
-			finalCallback(errors, results);
-			actions.length = 0;
-			delete pin[this];
 		}
 	}
 }

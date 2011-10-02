@@ -28,7 +28,9 @@ package org.robotlegs.oil.async
 
 		private var finalCallback:Function;
 
-		private var hasRun:Boolean;
+		private var finished:Boolean;
+
+		private var started:Boolean;
 
 		/*============================================================================*/
 		/* Constructor                                                                */
@@ -44,41 +46,51 @@ package org.robotlegs.oil.async
 		/* Public Functions                                                           */
 		/*============================================================================*/
 
+		public function cancel(error:Object = null, data:Object = null):void
+		{
+			finish(error || "cancelled", data);
+		}
+
 		public function run(data:*, callback:Function):void
 		{
-			if (hasRun)
+			if (started)
 				throw new IllegalOperationError("An ActionChain can only be run once");
 
-			hasRun = true;
-
+			started = true;
 			finalCallback = callback;
-
 			pin[this] = true;
-
-			actionCallback(null, data);
+			handle(null, data);
 		}
 
 		/*============================================================================*/
 		/* Private Functions                                                          */
 		/*============================================================================*/
 
-		private function actionCallback(err:Object, data:Object = null):void
+		private function finish(error:Object, data:Object):void
 		{
-			if (err || actions.length == 0)
+			if (finished)
+				return;
+
+			finished = true;
+			actions.length = 0;
+			delete pin[this];
+
+			finalCallback(error, data);
+		}
+
+		private function handle(error:Object, data:Object):void
+		{
+			if (finished)
+				return;
+
+			if (error || actions.length == 0)
 			{
-				finish(err, data);
+				finish(error, data);
 				return;
 			}
 
 			const action:Function = actions.shift();
-			action(data, actionCallback);
-		}
-
-		private function finish(err:Object, data:Object):void
-		{
-			finalCallback(err, data);
-			actions.length = 0;
-			delete pin[this];
+			action(data, handle);
 		}
 	}
 }

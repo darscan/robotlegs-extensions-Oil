@@ -11,7 +11,7 @@ package org.robotlegs.oil.rest
 
 	public interface IRestClient
 	{
-		function addParamsProcessor(processor:Function):IRestClient;
+		function addParamsTransform(transform:Function):IRestClient;
 		function addResultProcessor(processor:Function):IRestClient;
 		function del(url:String, params:Object = null):Promise;
 		function get(url:String, params:Object = null):Promise;

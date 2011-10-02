@@ -30,8 +30,8 @@ package org.robotlegs.oil.rest
 		public function JSONClient(rootURL:String = "")
 		{
 			super(rootURL);
+			addParamsTransform(paramsTransform);
 			addResultProcessor(resultProcessor);
-			addParamsProcessor(paramsProcessor);
 		}
 
 
@@ -53,7 +53,7 @@ package org.robotlegs.oil.rest
 		/* Protected Functions                                                        */
 		/*============================================================================*/
 
-		protected function paramsProcessor(source:*):Object
+		protected function paramsTransform(source:*):Object
 		{
 			if (source == null)
 				return null;

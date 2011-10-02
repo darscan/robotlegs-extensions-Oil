@@ -109,7 +109,7 @@ You might want your provider to process results before calling the result handle
 
 Note: You *must* call the callback at some point.
 
-Note: Passing any non-falsey value as the first argument to the callback will halt processing, put the promise into the fail state and invoke any error handlers.
+Note: Passing any non-falsey value as the first argument to the callback will halt processing, put the promise into the failed state and invoke any error handlers.
 
 h2. Rest
 
